@@ -9,18 +9,36 @@
 
 #include "defs.h"
 
-#include <assert.h>
 #include <fcntl.h>
+
+#include <sys/stat.h>
+#include <sys/types.h>
+
+#include "tracing_backend.h"
+
+
+#if defined _LARGEFILE64_SOURCE && defined HAVE_OPEN64
+# define open_file open64
+#else
+# define open_file open
+#endif
+
+int
+local_open(struct tcb *tcp, const char *path, int flags, int mode)
+{
+	return open_file(path, flags, mode);
+}
+
+#if ADDITIONAL_TRACING_PACKENDS
+
+#include <assert.h>
 #include <limits.h>
 #include <stdlib.h>
 #include <unistd.h>
 
 #include <sys/socket.h>
-#include <sys/stat.h>
-#include <sys/types.h>
 #include <sys/xattr.h>
 
-#include "tracing_backend.h"
 #include "ptrace_backend.h"
 
 /* Tracing backeng management functions */
@@ -59,18 +77,6 @@ set_tracing_backend(struct tracing_backend *backend)
 }
 
 /* Simple syscall wrappers for a local tracing backend */
-
-#if defined _LARGEFILE64_SOURCE && defined HAVE_OPEN64
-# define open_file open64
-#else
-# define open_file open
-#endif
-
-int
-local_open(struct tcb *tcp, const char *path, int flags, int mode)
-{
-	return open_file(path, flags, mode);
-}
 
 char *
 local_realpath(struct tcb *tcp, const char *path, char *resolved_path)
@@ -120,3 +126,5 @@ local_recvmsg(struct tcb *tcp, int fd, struct msghdr *msg, int flags)
 {
 	return recvmsg(fd, msg, flags);
 }
+
+#endif  /* ADDITIONAL_TRACING_PACKENDS */
