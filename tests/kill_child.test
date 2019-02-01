@@ -1,0 +1,26 @@
+#!/bin/sh
+#
+# Check whether repeated killing of just forked processes crashes strace.
+#
+# Copyright (c) 2019 The strace developers.
+# All rights reserved.
+#
+# SPDX-License-Identifier: GPL-2.0-or-later
+
+. "${srcdir=.}/init.sh"
+
+run_prog
+args="-f -qq -esignal=none $args"
+
+# Run strace until the known corner case is observed.
+while :; do
+	run_strace $args
+
+	# Printing of "<... SYSCALL resumed>" in strace.c:print_event_exit
+	# used to segfault when the syscall number had not been obtained
+	# on syscall entering.
+	# We cannot check it as is since on some architectures (i.e. ia64)
+	# there is no ptrace-syscall-stop before ptrace-exit-stop.
+	#grep -q '^[1-9][0-9]* <\.\.\. ???? resumed>) \+= ?$' "$LOG" && exit 0
+	grep -q '^[1-9][0-9]* ????(' "$LOG" && exit 0
+done
