@@ -7,6 +7,8 @@
 #
 # SPDX-License-Identifier: LGPL-2.1-or-later
 
+export LC_ALL=C
+
 usage()
 {
 	cat <<EOF
@@ -23,24 +25,27 @@ cond_def()
 	local line
 	line="$1"; shift
 
+	# cond_def is called only for strings that begin with [A-Z_], so we can
+	# just trim it on first non-alnum character
 	local val
-	val="$(printf %s "$line" |
-		LC_ALL=C sed -r -n 's/^([[:alpha:]_][[:alnum:]_]*).*$/\1/p')"
+	val="${line%%[!A-Za-z0-9_]*}"
 
 	local def
-	def="$(printf %s "${line}" |
-		sed -r -n 's/^[^[:space:]]+[[:space:]]+([^[:space:]].*)$/\1/p')"
+	def=""
+	if [ "x$line" != "x${line#*[ 	]}" ]; then
+		def="${line#*[ 	]}"
+		def="$(echo $def)"
+	fi
 
 	if [ -n "$def" ]; then
-		cat <<-EOF
-		#if defined($val) || (defined(HAVE_DECL_$val) && HAVE_DECL_$val)
-		DIAG_PUSH_IGNORE_TAUTOLOGICAL_COMPARE
-		static_assert(($val) == ($def), "$val != $def");
-		DIAG_POP_IGNORE_TAUTOLOGICAL_COMPARE
-		#else
-		# define $val $def
-		#endif
-		EOF
+		printf "%s\n" \
+			"#if defined($val) || (defined(HAVE_DECL_$val) && HAVE_DECL_$val)" \
+			"DIAG_PUSH_IGNORE_TAUTOLOGICAL_COMPARE" \
+			"static_assert(($val) == ($def), \"$val != $def\");" \
+			"DIAG_POP_IGNORE_TAUTOLOGICAL_COMPARE" \
+			"#else" \
+			"# define $val $def" \
+			"#endif"
 	fi
 }
 
@@ -74,33 +79,31 @@ print_xlat_pair()
 cond_xlat()
 {
 	local line val m def xlat
-	line="$1"; shift
+	echo "$1" | (read val def
 
-	val="$(printf %s "${line}" | sed -r -n 's/^([^[:space:]]+).*$/\1/p')"
-	m="${val%%|*}"
-	def="$(printf %s "${line}" |
-	       sed -r -n 's/^[^[:space:]]+[[:space:]]+([^[:space:]].*)$/\1/p')"
+		m="${val%%|*}"
 
-	if [ "${m}" = "${m#1<<}" ]; then
-		xlat="$(print_xlat "${val}")"
-	else
-		xlat="$(print_xlat_pair "1ULL<<${val#1<<}" "${val}")"
-		m="${m#1<<}"
-	fi
+		if [ "${m}" = "${m#1<<}" ]; then
+			xlat="$(print_xlat "${val}")"
+		else
+			xlat="$(print_xlat_pair "1ULL<<${val#1<<}" "${val}")"
+			m="${m#1<<}"
+		fi
 
-	if [ -z "${def}" ]; then
-		cat <<-EOF
-		#if defined(${m}) || (defined(HAVE_DECL_${m}) && HAVE_DECL_${m})
-		 ${xlat}
-		#endif
-		EOF
-	else
-		echo "$xlat"
-	fi
+		if [ -z "${def}" ]; then
+			printf "%s\n" \
+				"#if defined(${m}) || (defined(HAVE_DECL_${m}) && HAVE_DECL_${m})" \
+				" ${xlat}" \
+				"#endif"
+			else
+				echo "$xlat"
+			fi
+	)
 }
 
 gen_header()
 {
+	set -f
 	local input="$1" output="$2" name="$3"
 	echo "generating ${output}"
 	(
@@ -111,9 +114,9 @@ gen_header()
 
 	value_indexed=0
 
-	if grep -F -x "$decl" "$defs" > /dev/null; then
+	if grep -q -F -x "$decl" "$defs"; then
 		in_defs=1
-	elif grep -F -x "$decl" "$mpers" > /dev/null; then
+	elif grep -q -F -x "$decl" "$mpers"; then
 		in_mpers=1
 	fi
 
@@ -128,9 +131,10 @@ gen_header()
 	local unconditional= line
 	# 1st pass: output directives.
 	while read line; do
-		LC_COLLATE=C
-		line=$(printf "%s" "$line" | \
-			sed "s|[[:space:]]*/\*.*\*/[[:space:]]*||")
+		if [ "x$line" != "x${line%%/\**}" ]; then
+			line=$(printf "%s" "$line" | \
+				sed "s|[[:space:]]*/\*.*\*/[[:space:]]*||")
+		fi
 
 		case $line in
 		'#stop')
@@ -198,9 +202,10 @@ gen_header()
 	unconditional= val_type=
 	# 2nd pass: output everything.
 	while read line; do
-		LC_COLLATE=C
-		line=$(printf "%s" "$line" | \
-			sed "s|[[:space:]]*/\*.*\*/[[:space:]]*||")
+		if [ "x$line" != "x${line%%/\**}" ]; then
+			line=$(printf "%s" "$line" | \
+				sed "s|[[:space:]]*/\*.*\*/[[:space:]]*||")
+		fi
 
 		case ${line} in
 		'#conditional')
