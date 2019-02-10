@@ -368,7 +368,7 @@ ptrace_restart(const unsigned int op, struct tcb *const tcp, unsigned int sig)
 	errno = 0;
 	ptrace(op, tcp->pid, 0L, (unsigned long) sig);
 	err = errno;
-	if (!err)
+	if (!err || err == ESRCH)
 		return 0;
 
 	/*
@@ -385,8 +385,6 @@ ptrace_restart(const unsigned int op, struct tcb *const tcp, unsigned int sig)
 			tcp->pid, ptrace_op_str(op), strerror(err));
 		line_ended();
 	}
-	if (err == ESRCH)
-		return 0;
 	errno = err;
 	perror_msg("ptrace(%s,pid:%d,sig:%u)",
 		   ptrace_op_str(op), tcp->pid, sig);
