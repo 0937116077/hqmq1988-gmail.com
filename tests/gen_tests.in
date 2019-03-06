@@ -307,6 +307,7 @@ oldselect-efault-P	-a13 -e trace=select -P /dev/full 9>>/dev/full
 oldstat	-a32 -v -P stat.sample -P /dev/full
 open	-a30 -P $NAME.sample
 openat	-a36 -P $NAME.sample
+orphaned_process_group	-f -e trace=none
 osf_utimes	-a21
 pause	-a8 -esignal=none
 perf_event_open	-a1
