@@ -1965,6 +1965,11 @@ print_debug_info(const int pid, int status)
 	char buf[sizeof("WIFEXITED,exitcode=%u") + sizeof(int)*3 /*paranoia:*/ + 16];
 	char evbuf[sizeof(",EVENT_VFORK_DONE (%u)") + sizeof(int)*3 /*paranoia:*/ + 16];
 
+	if (pid <= 0) {
+		error_msg("[wait(%#06x) = %d]", status, pid);
+		return;
+	}
+
 	strcpy(buf, "???");
 	if (WIFSIGNALED(status))
 		xsprintf(buf, "WIFSIGNALED,%ssig=%s",
@@ -1993,7 +1998,7 @@ print_debug_info(const int pid, int status)
 			e = "STOP";
 		xsprintf(evbuf, ",EVENT_%s (%u)", e, event);
 	}
-	error_msg("[wait(0x%06x) = %u] %s%s", status, pid, buf, evbuf);
+	error_msg("[wait(%#06x) = %d] %s%s", status, pid, buf, evbuf);
 }
 
 static struct tcb *
@@ -2331,6 +2336,9 @@ next_event(void)
 	for (;;) {
 		struct tcb_wait_data *wd;
 
+		if (debug_flag)
+			print_debug_info(pid, status);
+
 		if (pid < 0) {
 			if (wait_errno == EINTR)
 				break;
@@ -2354,9 +2362,6 @@ next_event(void)
 				popen_pid = 0;
 			break;
 		}
-
-		if (debug_flag)
-			print_debug_info(pid, status);
 
 		/* Look up 'pid' in our table. */
 		tcp = pid2tcb(pid);
