@@ -51,6 +51,7 @@ main(int ac, const char *av[])
 	if (stopped < 0)
 		perror_msg_and_fail("fork");
 	if (!stopped) {
+		alarm(timeout + timeout / 2);
 		raise(SIGSTOP);
 		_exit(0);
 	}
