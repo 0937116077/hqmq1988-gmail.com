@@ -163,6 +163,8 @@ strace_SOURCES =	\
 	ipc_shm.c	\
 	ipc_shmctl.c	\
 	kcmp.c		\
+	kd_ioctl.c	\
+	kd_mpers_ioctl.c \
 	kernel_timespec.h \
 	kernel_timeval.h \
 	kernel_timex.h	\

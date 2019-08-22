@@ -1051,6 +1051,7 @@ DECL_IOCTL(evdev);
 DECL_IOCTL(file);
 DECL_IOCTL(fs_x);
 DECL_IOCTL(inotify);
+DECL_IOCTL(kd);
 DECL_IOCTL(kvm);
 DECL_IOCTL(nbd);
 DECL_IOCTL(nsfs);

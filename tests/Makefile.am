@@ -115,6 +115,14 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	ioctl_evdev-success-v-Xabbrev \
 	ioctl_evdev-success-v-Xraw \
 	ioctl_evdev-success-v-Xverbose \
+	ioctl_kd-success \
+	ioctl_kd-success-Xabbrev \
+	ioctl_kd-success-Xraw \
+	ioctl_kd-success-Xverbose \
+	ioctl_kd-success-s1024 \
+	ioctl_kd-success-s1024-Xabbrev \
+	ioctl_kd-success-s1024-Xraw \
+	ioctl_kd-success-s1024-Xverbose \
 	ioctl_loop-nv \
 	ioctl_loop-v \
 	ioctl_nsfs \
@@ -259,6 +267,7 @@ DECODER_TESTS = \
 	inotify_init-y.test \
 	ioctl.test \
 	ioctl_evdev-success.test \
+	ioctl_kd-success.test \
 	ioctl_perf-success.test \
 	ipc_msgbuf.test \
 	kern_features-fault.test \
