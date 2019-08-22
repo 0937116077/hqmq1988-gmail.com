@@ -229,6 +229,13 @@
 		printfd((tcp_), (where_).field_);			\
 	} while (0)
 
+# define PRINT_FIELD_CHAR(prefix_, where_, field_, flags_)		\
+	do {								\
+		STRACE_PRINTF("%s%s=", (prefix_), #field_);		\
+		print_char((where_).field_, (flags_));			\
+	} while (0)
+
+
 # define PRINT_FIELD_STRN(prefix_, where_, field_, len_, tcp_)		\
 	do {								\
 		STRACE_PRINTF("%s%s=", (prefix_), #field_);		\

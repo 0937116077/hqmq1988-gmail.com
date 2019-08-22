@@ -77,30 +77,8 @@ print_pixelformat(uint32_t fourcc, const struct xlat *xlat)
 
 		if (i)
 			tprints(", ");
-		if (c == '\'' || c == '\\') {
-			char sym[] = {
-				'\'',
-				'\\',
-				c,
-				'\'',
-				'\0'
-			};
-			tprints(sym);
-		} else if (is_print(c)) {
-			char sym[] = {
-				'\'',
-				c,
-				'\'',
-				'\0'
-			};
-			tprints(sym);
-		} else {
-			char hex[] = {
-				BYTE_HEX_CHARS_PRINTF_QUOTED(c),
-				'\0'
-			};
-			tprints(hex);
-		}
+
+		print_char(c, SCF_QUOTES);
 	}
 	tprints(")");
 
