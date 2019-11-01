@@ -47,6 +47,19 @@ typedef struct v4l2_buffer struct_v4l2_buffer;
 typedef struct v4l2_clip struct_v4l2_clip;
 typedef struct v4l2_format struct_v4l2_format;
 
+
+typedef struct {
+	uint8_t  driver[16];
+	uint8_t  card[32];
+	uint8_t  bus_info[32];
+	uint32_t version;
+	uint32_t capabilities;
+	uint32_t device_caps; /**< Added by v3.4-rc1~110^2^2~259 */
+	uint32_t reserved[3];
+} struct_v4l2_capability;
+CHECK_V4L2_STRUCT_RESERVED_SIZE(v4l2_capability);
+
+
 typedef struct {
 	uint32_t index;
 	uint32_t count;
@@ -155,7 +168,7 @@ print_pixelformat(uint32_t fourcc, const struct xlat *xlat)
 static int
 print_v4l2_capability(struct tcb *const tcp, const kernel_ulong_t arg)
 {
-	struct v4l2_capability caps;
+	struct_v4l2_capability caps;
 
 	if (entering(tcp))
 		return 0;
@@ -170,11 +183,11 @@ print_v4l2_capability(struct tcb *const tcp, const kernel_ulong_t arg)
 	tprints(", capabilities=");
 	printflags(v4l2_device_capabilities_flags, caps.capabilities,
 		   "V4L2_CAP_???");
-#ifdef HAVE_STRUCT_V4L2_CAPABILITY_DEVICE_CAPS
-	tprints(", device_caps=");
-	printflags(v4l2_device_capabilities_flags, caps.device_caps,
-		   "V4L2_CAP_???");
-#endif
+	if (caps.device_caps) {
+		tprints(", device_caps=");
+		printflags(v4l2_device_capabilities_flags, caps.device_caps,
+			   "V4L2_CAP_???");
+	}
 	tprints("}");
 	return RVAL_IOCTL_DECODED;
 }
