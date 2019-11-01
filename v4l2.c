@@ -44,8 +44,6 @@
 #include DEF_MPERS_TYPE(struct_v4l2_standard)
 
 typedef struct v4l2_buffer struct_v4l2_buffer;
-typedef struct v4l2_clip struct_v4l2_clip;
-typedef struct v4l2_format struct_v4l2_format;
 
 
 typedef struct {
@@ -58,6 +56,153 @@ typedef struct {
 	uint32_t reserved[3];
 } struct_v4l2_capability;
 CHECK_V4L2_STRUCT_RESERVED_SIZE(v4l2_capability);
+
+
+typedef struct {
+	uint32_t width;
+	uint32_t height;
+	uint32_t pixelformat;
+	uint32_t field;
+	uint32_t bytesperline;
+	uint32_t sizeimage;
+	uint32_t colorspace; /**< enum v4l2_colorspace */
+	uint32_t priv;
+	/** Format flags (V4L2_PIX_FMT_FLAG_*), added by v3.17-rc1~112^2~326 */
+	uint32_t flags;
+	union {
+		/** enum v4l2_ycbcr_encoding, added by v3.19-rc1~29^2~72 */
+		uint32_t ycbcr_enc;
+		/** enum v4l2_hsv_encoding, added by v4.10-rc1~71^2^2~352 */
+		uint32_t hsv_enc;
+	};
+	/** enum v4l2_quantization, added by v3.19-rc1~29^2~72 */
+	uint32_t quantization;
+	/** enum v4l2_xfer_func, added by Linux commit v4.2-rc1~107^2~136 */
+	uint32_t xfer_func;
+} struct_v4l2_pix_format;
+CHECK_V4L2_STRUCT_SIZE_LE(v4l2_pix_format);
+
+/** Added by Linux commit v2.6.39-rc1~86^2~437 */
+typedef struct {
+	uint32_t sizeimage;
+	uint32_t bytesperline; /**< Type has changed in v4.1-rc1~59^2~1^2~88 */
+	uint16_t reserved[6];
+} struct_v4l2_plane_pix_format;
+#ifdef HAVE_STRUCT_V4L2_PLANE_PIX_FORMAT
+CHECK_V4L2_STRUCT_RESERVED_SIZE(v4l2_plane_pix_format);
+#endif
+
+/** Added by Linux commit v2.6.39-rc1~86^2~437 */
+typedef struct {
+	uint32_t width;
+	uint32_t height;
+	uint32_t pixelformat;
+	uint32_t field;
+	uint32_t colorspace;
+
+	struct_v4l2_plane_pix_format plane_fmt[VIDEO_MAX_PLANES];
+	uint8_t num_planes;
+	/** Format flags (V4L2_PIX_FMT_FLAG_*), added by v3.17-rc1~112^2~326 */
+	uint8_t flags;
+	union {
+		/** enum v4l2_ycbcr_encoding, added by v3.19-rc1~29^2~72 */
+		uint8_t ycbcr_enc;
+		/** enum v4l2_hsv_encoding, added by v4.10-rc1~71^2^2~352 */
+		uint8_t hsv_enc;
+	};
+	/** enum v4l2_quantization, added by v3.19-rc1~29^2~72 */
+	uint8_t quantization;
+	/** enum v4l2_xfer_func, added by Linux commit v4.2-rc1~107^2~136 */
+	uint8_t xfer_func;
+	uint8_t reserved[7];
+} ATTRIBUTE_PACKED struct_v4l2_pix_format_mplane;
+#ifdef HAVE_STRUCT_V4L2_PIX_FORMAT_MPLANE
+CHECK_V4L2_STRUCT_RESERVED_SIZE(v4l2_pix_format_mplane);
+#endif
+
+typedef struct strace_v4l2_clip {
+	struct v4l2_rect c;
+	struct strace_v4l2_clip *next;
+} struct_v4l2_clip;
+CHECK_V4L2_STRUCT_SIZE(v4l2_clip);
+
+typedef struct {
+	struct v4l2_rect w;
+	uint32_t field; /* enum v4l2_field */
+	uint32_t chromakey;
+	struct_v4l2_clip *clips;
+	uint32_t clipcount;
+	void *bitmap;
+	uint8_t global_alpha; /**< Added by v2.6.22-rc1~1118^2~179 */
+} struct_v4l2_window;
+CHECK_V4L2_STRUCT_SIZE_LE(v4l2_window);
+
+typedef struct {
+	uint32_t sampling_rate;
+	uint32_t offset;
+	uint32_t samples_per_line;
+	uint32_t sample_format; /* V4L2_PIX_FMT_* */
+	int32_t  start[2];
+	uint32_t count[2];
+	uint32_t flags; /* V4L2_VBI_* */
+	uint32_t reserved[2];
+} struct_v4l2_vbi_format;
+CHECK_V4L2_STRUCT_RESERVED_SIZE(v4l2_vbi_format);
+
+/** Added by Linux commit v2.6.16.28-rc1~3732 */
+typedef struct {
+	uint16_t service_set;
+	uint16_t service_lines[2][24];
+	uint32_t io_size;
+	uint32_t reserved[2];
+} struct_v4l2_sliced_vbi_format;
+CHECK_V4L2_STRUCT_RESERVED_SIZE(v4l2_sliced_vbi_format);
+
+typedef struct {
+	uint16_t service_set;
+	uint16_t service_lines[2][24];
+	uint32_t type; /**< enum v4l2_buf_type, added by v2.6.19-rc1~643^2~52 */
+	uint32_t reserved[3];
+} struct_v4l2_sliced_vbi_cap;
+CHECK_V4L2_STRUCT_RESERVED_SIZE(v4l2_sliced_vbi_cap);
+
+/** Added by Linux commits v3.15-rc1~85^2~213, v3.15-rc1~85^2~41 */
+typedef struct {
+	uint32_t pixelformat;
+	uint32_t buffersize; /**< Added by Linux commit v3.17-rc1~112^2~230 */
+	uint8_t  reserved[24];
+} ATTRIBUTE_PACKED struct_v4l2_sdr_format;
+#ifdef HAVE_STRUCT_V4L2_SDR_FORMAT
+CHECK_V4L2_STRUCT_RESERVED_SIZE(v4l2_sdr_format);
+#endif
+
+/** Added by Linux commit v4.12-rc1~85^2~71 */
+typedef struct {
+	uint32_t dataformat;
+	uint32_t buffersize;
+} ATTRIBUTE_PACKED struct_v4l2_meta_format;
+#ifdef HAVE_STRUCT_V4L2_META_FORMAT
+CHECK_V4L2_STRUCT_SIZE(v4l2_meta_format);
+#endif
+
+typedef struct {
+	uint32_t type;
+	union {
+		struct_v4l2_pix_format		pix;
+		/** Added by Linux commit v2.6.39-rc1~86^2~437 */
+		struct_v4l2_pix_format_mplane	pix_mp;
+		struct_v4l2_window		win;
+		struct_v4l2_vbi_format		vbi;
+		/** Added by Linux commit v2.6.16.28-rc1~3732 */
+		struct_v4l2_sliced_vbi_format	sliced;
+		/** Added by v3.15-rc1~85^2~213, v3.15-rc1~85^2~41 */
+		struct_v4l2_sdr_format		sdr;
+		/** Added by Linux commit v4.12-rc1~85^2~71 */
+		struct_v4l2_meta_format		meta;
+		uint8_t raw_data[200];
+	} fmt;
+} struct_v4l2_format;
+CHECK_V4L2_STRUCT_SIZE(v4l2_format);
 
 
 typedef struct {
@@ -254,7 +399,6 @@ print_v4l2_format_fmt(struct tcb *const tcp, const char *prefix,
 			  "V4L2_COLORSPACE_???");
 		tprints("}");
 		break;
-#if HAVE_STRUCT_V4L2_FORMAT_FMT_PIX_MP
 	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
 	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE: {
 		unsigned int i, max;
@@ -283,7 +427,6 @@ print_v4l2_format_fmt(struct tcb *const tcp, const char *prefix,
 			(unsigned) f->fmt.pix_mp.num_planes);
 		break;
 	}
-#endif
 	/* OUTPUT_OVERLAY since Linux v2.6.22-rc1~1118^2~179 */
 	case V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY:
 	case V4L2_BUF_TYPE_VIDEO_OVERLAY: {
@@ -298,9 +441,8 @@ print_v4l2_format_fmt(struct tcb *const tcp, const char *prefix,
 				  tfetch_mem, print_v4l2_clip, 0);
 		tprintf(", clipcount=%u, bitmap=", f->fmt.win.clipcount);
 		printaddr(ptr_to_kulong(f->fmt.win.bitmap));
-#ifdef HAVE_STRUCT_V4L2_WINDOW_GLOBAL_ALPHA
-		tprintf(", global_alpha=%#x", f->fmt.win.global_alpha);
-#endif
+		if (f->fmt.win.global_alpha)
+			tprintf(", global_alpha=%#x", f->fmt.win.global_alpha);
 		tprints("}");
 		break;
 	}
@@ -320,7 +462,6 @@ print_v4l2_format_fmt(struct tcb *const tcp, const char *prefix,
 		tprints("}");
 		break;
 	/* both since Linux v2.6.14-rc2~64 */
-#if HAVE_STRUCT_V4L2_FORMAT_FMT_SLICED
 	case V4L2_BUF_TYPE_SLICED_VBI_CAPTURE:
 	case V4L2_BUF_TYPE_SLICED_VBI_OUTPUT: {
 		unsigned int i, j;
@@ -348,8 +489,6 @@ print_v4l2_format_fmt(struct tcb *const tcp, const char *prefix,
 		tprints("]}");
 		break;
 	}
-#endif
-#if HAVE_STRUCT_V4L2_FORMAT_FMT_SDR
 	/* since Linux v4.4-rc1~118^2~14 */
 	case V4L2_BUF_TYPE_SDR_OUTPUT:
 	/* since Linux v3.15-rc1~85^2~213 */
@@ -357,13 +496,11 @@ print_v4l2_format_fmt(struct tcb *const tcp, const char *prefix,
 		tprints(prefix);
 		tprints("fmt.sdr={pixelformat=");
 		print_pixelformat(f->fmt.sdr.pixelformat, v4l2_sdr_fmts);
-# ifdef HAVE_STRUCT_V4L2_SDR_FORMAT_BUFFERSIZE
-		tprintf(", buffersize=%u",
-			f->fmt.sdr.buffersize);
-# endif
+		if (f->fmt.sdr.buffersize)
+			tprintf(", buffersize=%u",
+				f->fmt.sdr.buffersize);
 		tprints("}");
 		break;
-#endif
 	default:
 		return false;
 	}
