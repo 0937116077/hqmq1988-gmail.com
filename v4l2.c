@@ -35,9 +35,7 @@
 
 #include DEF_MPERS_TYPE(struct_v4l2_buffer)
 #include DEF_MPERS_TYPE(struct_v4l2_clip)
-#ifdef VIDIOC_CREATE_BUFS
-# include DEF_MPERS_TYPE(struct_v4l2_create_buffers)
-#endif
+#include DEF_MPERS_TYPE(struct_v4l2_create_buffers)
 #include DEF_MPERS_TYPE(struct_v4l2_ext_control)
 #include DEF_MPERS_TYPE(struct_v4l2_ext_controls)
 #include DEF_MPERS_TYPE(struct_v4l2_format)
@@ -47,12 +45,25 @@
 
 typedef struct v4l2_buffer struct_v4l2_buffer;
 typedef struct v4l2_clip struct_v4l2_clip;
-#ifdef VIDIOC_CREATE_BUFS
-typedef struct v4l2_create_buffers struct_v4l2_create_buffers;
+typedef struct v4l2_format struct_v4l2_format;
+
+typedef struct {
+	uint32_t index;
+	uint32_t count;
+	uint32_t memory;
+	struct_v4l2_format format;
+	/** V4L2_BUF_CAP_*, added by Linux commit v4.20-rc1~51^2~14 */
+	uint32_t capabilities;
+	uint32_t reserved[7];
+} struct_v4l2_create_buffers;
+
+#ifdef HAVE_STRUCT_V4L2_CREATE_BUFFERS
+CHECK_V4L2_STRUCT_RESERVED_SIZE(v4l2_create_buffers);
 #endif
+
+
 typedef struct v4l2_ext_control struct_v4l2_ext_control;
 typedef struct v4l2_ext_controls struct_v4l2_ext_controls;
-typedef struct v4l2_format struct_v4l2_format;
 typedef struct v4l2_framebuffer struct_v4l2_framebuffer;
 typedef struct v4l2_input struct_v4l2_input;
 typedef struct v4l2_standard struct_v4l2_standard;
@@ -1013,7 +1024,6 @@ print_v4l2_frmivalenum(struct tcb *const tcp, const kernel_ulong_t arg)
 }
 #endif /* VIDIOC_ENUM_FRAMEINTERVALS */
 
-#ifdef VIDIOC_CREATE_BUFS
 static int
 print_v4l2_create_buffers(struct tcb *const tcp, const kernel_ulong_t arg)
 {
@@ -1045,7 +1055,6 @@ print_v4l2_create_buffers(struct tcb *const tcp, const kernel_ulong_t arg)
 
 	return RVAL_IOCTL_DECODED | RVAL_STR;
 }
-#endif /* VIDIOC_CREATE_BUFS */
 
 MPERS_PRINTER_DECL(int, v4l2_ioctl, struct tcb *const tcp,
 		   const unsigned int code, const kernel_ulong_t arg)
@@ -1148,10 +1157,8 @@ MPERS_PRINTER_DECL(int, v4l2_ioctl, struct tcb *const tcp,
 		return print_v4l2_frmivalenum(tcp, arg);
 #endif /* VIDIOC_ENUM_FRAMEINTERVALS */
 
-#ifdef VIDIOC_CREATE_BUFS
 	case VIDIOC_CREATE_BUFS: /* RW */
 		return print_v4l2_create_buffers(tcp, arg);
-#endif /* VIDIOC_CREATE_BUFS */
 
 	default:
 		return RVAL_DECODED;
