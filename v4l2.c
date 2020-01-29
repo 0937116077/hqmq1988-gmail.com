@@ -220,8 +220,42 @@ CHECK_V4L2_STRUCT_RESERVED_SIZE(v4l2_create_buffers);
 #endif
 
 
-typedef struct v4l2_ext_control struct_v4l2_ext_control;
-typedef struct v4l2_ext_controls struct_v4l2_ext_controls;
+/** Added by Linux v5.5-rc1~143^2^2~225 */
+typedef struct {
+	__u32   width;
+	__u32   height;
+} struct_v4l2_area;
+
+/** Added by Linux commit v2.6.18-rc1~862^2~18 */
+typedef struct {
+        uint32_t id;
+        uint32_t size; /* Added by v2.6.32-rc1~679^2~72 */
+        uint32_t reserved2[1];
+        union {
+                int32_t value;
+                int64_t value64;
+                char *string;             /**< Added by v2.6.32-rc1~679^2~72 */
+                uint8_t *p_u8;            /**< Added by v3.17-rc1~112^2~343 */
+                uint16_t *p_u16;          /**< Added by v3.17-rc1~112^2~343 */
+                uint32_t *p_u32;          /**< Added by v3.17-rc1~112^2~112 */
+                struct_v4l2_area *p_area; /**< Added by v5.5-rc1~143^2^2~51 */
+                void *ptr;                /**< Added by v3.17-rc1~112^2~363 */
+        };
+} ATTRIBUTE_PACKED struct_v4l2_ext_control;
+
+/** Added by Linux commit v2.6.18-rc1~862^2~18 */
+typedef struct {
+        union {
+		uint32_t ctrl_class;
+		uint32_t which;
+	};
+        uint32_t count;
+	uint32_t error_idx;
+	int32_t  request_fd; /**< Added by Linux commit v4.20-rc1~51^2~44 */
+	uint32_t reserved[1];
+	struct_v4l2_ext_control *controls;
+} struct_v4l2_ext_controls;
+
 typedef struct v4l2_framebuffer struct_v4l2_framebuffer;
 typedef struct v4l2_input struct_v4l2_input;
 typedef struct v4l2_standard struct_v4l2_standard;
@@ -1020,7 +1054,6 @@ print_v4l2_crop(struct tcb *const tcp, const kernel_ulong_t arg,
 	return RVAL_IOCTL_DECODED;
 }
 
-#ifdef VIDIOC_S_EXT_CTRLS
 static bool
 print_v4l2_ext_control(struct tcb *tcp, void *elem_buf, size_t elem_size, void *data)
 {
@@ -1028,14 +1061,13 @@ print_v4l2_ext_control(struct tcb *tcp, void *elem_buf, size_t elem_size, void *
 
 	tprints("{id=");
 	printxval(v4l2_control_ids, p->id, "V4L2_CID_???");
-# if HAVE_STRUCT_V4L2_EXT_CONTROL_STRING
 	tprintf(", size=%u", p->size);
 	if (p->size > 0) {
 		tprints(", string=");
 		printstrn(tcp, ptr_to_kulong(p->string), p->size);
-	} else
-# endif
-	tprintf(", value=%d, value64=%" PRId64, p->value, (int64_t) p->value64);
+	} else {
+		tprintf(", value=%d, value64=%" PRId64, p->value, p->value64);
+	}
 	tprints("}");
 
 	return true;
@@ -1088,7 +1120,6 @@ print_v4l2_ext_controls(struct tcb *const tcp, const kernel_ulong_t arg,
 	/* entering */
 	return 0;
 }
-#endif /* VIDIOC_S_EXT_CTRLS */
 
 #ifdef VIDIOC_ENUM_FRAMESIZES
 # include "xlat/v4l2_framesize_types.h"
@@ -1289,13 +1320,11 @@ MPERS_PRINTER_DECL(int, v4l2_ioctl, struct tcb *const tcp,
 	case VIDIOC_S_CROP: /* W */
 		return print_v4l2_crop(tcp, arg, code == VIDIOC_G_CROP);
 
-#ifdef VIDIOC_S_EXT_CTRLS
 	case VIDIOC_S_EXT_CTRLS: /* RW */
 	case VIDIOC_TRY_EXT_CTRLS: /* RW */
 	case VIDIOC_G_EXT_CTRLS: /* RW */
 		return print_v4l2_ext_controls(tcp, arg,
 					       code == VIDIOC_G_EXT_CTRLS);
-#endif /* VIDIOC_S_EXT_CTRLS */
 
 #ifdef VIDIOC_ENUM_FRAMESIZES
 	case VIDIOC_ENUM_FRAMESIZES: /* RW */
