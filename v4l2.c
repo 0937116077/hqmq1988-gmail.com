@@ -206,6 +206,52 @@ CHECK_V4L2_STRUCT_SIZE(v4l2_format);
 
 
 typedef struct {
+	uint32_t width;
+	uint32_t height;
+} struct_v4l2_frmsize_discrete;
+
+typedef struct {
+	uint32_t min_width;
+	uint32_t max_width;
+	uint32_t step_width;
+	uint32_t min_height;
+	uint32_t max_height;
+	uint32_t step_height;
+} struct_v4l2_frmsize_stepwise;
+
+/** Added by Linux commit v2.6.19-rc1~183 */
+typedef struct {
+	uint32_t index;
+	uint32_t pixel_format;
+	uint32_t type; /**< enum v4l2_frmsizetypes */
+	union {
+		struct_v4l2_frmsize_discrete discrete;
+		struct_v4l2_frmsize_stepwise stepwise;
+	};
+	uint32_t reserved[2];
+} struct_v4l2_frmsizeenum;
+
+typedef struct {
+	struct v4l2_fract min;
+	struct v4l2_fract max;
+	struct v4l2_fract step;
+} struct_v4l2_frmival_stepwise;
+
+typedef struct {
+	uint32_t index;
+	uint32_t pixel_format;
+	uint32_t width;
+	uint32_t height;
+	uint32_t type; /**< enum v4l2_frmivaltypes */
+	union {
+		struct v4l2_fract		discrete;
+		struct_v4l2_frmival_stepwise	stepwise;
+	};
+	uint32_t reserved[2];
+} struct_v4l2_frmivalenum;
+
+
+typedef struct {
 	uint32_t index;
 	uint32_t count;
 	uint32_t memory;
@@ -1121,13 +1167,12 @@ print_v4l2_ext_controls(struct tcb *const tcp, const kernel_ulong_t arg,
 	return 0;
 }
 
-#ifdef VIDIOC_ENUM_FRAMESIZES
-# include "xlat/v4l2_framesize_types.h"
+#include "xlat/v4l2_framesize_types.h"
 
 static int
 print_v4l2_frmsizeenum(struct tcb *const tcp, const kernel_ulong_t arg)
 {
-	struct v4l2_frmsizeenum s;
+	struct_v4l2_frmsizeenum s;
 
 	if (entering(tcp)) {
 		tprints(", ");
@@ -1159,15 +1204,13 @@ print_v4l2_frmsizeenum(struct tcb *const tcp, const kernel_ulong_t arg)
 	tprints("}");
 	return RVAL_IOCTL_DECODED;
 }
-#endif /* VIDIOC_ENUM_FRAMESIZES */
 
-#ifdef VIDIOC_ENUM_FRAMEINTERVALS
-# include "xlat/v4l2_frameinterval_types.h"
+#include "xlat/v4l2_frameinterval_types.h"
 
 static int
 print_v4l2_frmivalenum(struct tcb *const tcp, const kernel_ulong_t arg)
 {
-	struct v4l2_frmivalenum f;
+	struct_v4l2_frmivalenum f;
 
 	if (entering(tcp)) {
 		tprints(", ");
@@ -1203,7 +1246,6 @@ print_v4l2_frmivalenum(struct tcb *const tcp, const kernel_ulong_t arg)
 
 	return RVAL_IOCTL_DECODED;
 }
-#endif /* VIDIOC_ENUM_FRAMEINTERVALS */
 
 static int
 print_v4l2_create_buffers(struct tcb *const tcp, const kernel_ulong_t arg)
@@ -1326,15 +1368,11 @@ MPERS_PRINTER_DECL(int, v4l2_ioctl, struct tcb *const tcp,
 		return print_v4l2_ext_controls(tcp, arg,
 					       code == VIDIOC_G_EXT_CTRLS);
 
-#ifdef VIDIOC_ENUM_FRAMESIZES
 	case VIDIOC_ENUM_FRAMESIZES: /* RW */
 		return print_v4l2_frmsizeenum(tcp, arg);
-#endif /* VIDIOC_ENUM_FRAMESIZES */
 
-#ifdef VIDIOC_ENUM_FRAMEINTERVALS
 	case VIDIOC_ENUM_FRAMEINTERVALS: /* RW */
 		return print_v4l2_frmivalenum(tcp, arg);
-#endif /* VIDIOC_ENUM_FRAMEINTERVALS */
 
 	case VIDIOC_CREATE_BUFS: /* RW */
 		return print_v4l2_create_buffers(tcp, arg);
