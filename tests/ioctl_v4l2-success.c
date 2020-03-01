@@ -1145,11 +1145,15 @@ main(int argc, char **argv)
 		       cids[i % ARRAY_SIZE(cids)].str,
 		       ctrl_types[i % ARRAY_SIZE(ctrl_types)].str);
 		print_quoted_cstring((char *) qctrl->name, sizeof(qctrl->name));
+#if VERBOSE
 		printf(", minimum=-2136948502, maximum=-2136948501"
-		       ", step=-2136948500, default_value=-2136948499, flags=%s"
-		       "}) = %ld (INJECTED)\n",
-		       ctrl_flags[i % ARRAY_SIZE(ctrl_flags)].str,
-		       inject_retval);
+		       ", step=-2136948500, default_value=-2136948499"
+		       ", flags=%s",
+		       ctrl_flags[i % ARRAY_SIZE(ctrl_flags)].str);
+#else
+		printf(", ...");
+#endif
+		printf("}) = %ld (INJECTED)\n", inject_retval);
 	}
 
 
