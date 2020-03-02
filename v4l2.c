@@ -302,7 +302,31 @@ typedef struct {
 	struct_v4l2_ext_control *controls;
 } struct_v4l2_ext_controls;
 
-typedef struct v4l2_framebuffer struct_v4l2_framebuffer;
+
+typedef struct {
+        uint32_t capability;
+        uint32_t flags;
+        void *   base;
+	/*
+	 * struct v4l2_framebuffer embeds (a part of) struct v4l2_pix_format
+	 * in order to allow the latter to grow without breaking the API/ABI
+	 * (v4l2 developers don't allow the structures whose sizes are in ioctl
+	 * numbers to change their size).
+	 */
+        struct {
+                uint32_t width;
+                uint32_t height;
+                uint32_t pixelformat;
+                uint32_t field;          /** enum v4l2_field */
+                uint32_t bytesperline;
+                uint32_t sizeimage;
+                uint32_t colorspace;     /** enum v4l2_colorspace */
+                uint32_t priv;
+        } fmt;
+} struct_v4l2_framebuffer;
+CHECK_V4L2_STRUCT_SIZE(v4l2_framebuffer);
+
+
 typedef struct v4l2_input struct_v4l2_input;
 typedef struct v4l2_standard struct_v4l2_standard;
 
@@ -763,18 +787,42 @@ print_v4l2_buffer(struct tcb *const tcp, const unsigned int code,
 	return RVAL_IOCTL_DECODED;
 }
 
+#include "xlat/v4l2_framebuffer_capabilities.h"
+#include "xlat/v4l2_framebuffer_flags.h"
+
 static int
 print_v4l2_framebuffer(struct tcb *const tcp, const kernel_ulong_t arg)
 {
 	struct_v4l2_framebuffer b;
 
 	tprints(", ");
-	if (!umove_or_printaddr(tcp, arg, &b)) {
-		tprintf("{capability=%#x, flags=%#x, base=",
-			b.capability, b.flags);
-		printaddr(ptr_to_kulong(b.base));
+	if (umove_or_printaddr(tcp, arg, &b))
+		return RVAL_IOCTL_DECODED;
+
+	PRINT_FIELD_FLAGS("{", b, capability,
+			  v4l2_framebuffer_capabilities,
+			  "V4L2_FBUF_CAP_???");
+	PRINT_FIELD_FLAGS(", ", b, flags, v4l2_framebuffer_flags,
+			  "V4L2_FBUF_FLAG_???");
+	PRINT_FIELD_PTR(", ", b, base);
+
+	if (!abbrev(tcp)) {
+		PRINT_FIELD_U(", fmt={", b.fmt, width);
+		PRINT_FIELD_U(", ", b.fmt, height);
+		PRINT_FIELD_PIXFMT(", ", b.fmt, pixelformat, v4l2_pix_fmts);
+		PRINT_FIELD_XVAL(", ", b.fmt, field, v4l2_fields,
+				 "V4L2_FIELD_???");
+		PRINT_FIELD_U(", ", b.fmt, bytesperline);
+		PRINT_FIELD_U(", ", b.fmt, sizeimage);
+		PRINT_FIELD_XVAL(", ", b.fmt, colorspace, v4l2_colorspaces,
+				 "V4L2_COLORSPACE_???");
+		PRINT_FIELD_X(", ", b.fmt, priv);
 		tprints("}");
+	} else {
+		tprints(", ...");
 	}
+
+	tprints("}");
 
 	return RVAL_IOCTL_DECODED;
 }
