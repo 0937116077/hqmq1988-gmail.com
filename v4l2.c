@@ -47,6 +47,19 @@ typedef struct v4l2_buffer struct_v4l2_buffer;
 
 
 typedef struct {
+	uint32_t type; /* enum v4l2_buf_type */
+	uint32_t index;
+	uint32_t plane;
+	uint32_t flags;
+	int32_t  fd;
+	uint32_t reserved[11];
+} struct_v4l2_exportbuffer;
+#ifdef HAVE_STRUCT_V4L2_EXPORT_BUFFER
+CHECK_V4L2_STRUCT_RESERVED_SIZE(v4l2_exportbuffer);
+#endif
+
+
+typedef struct {
 	uint8_t  driver[16];
 	uint8_t  card[32];
 	uint8_t  bus_info[32];
@@ -822,6 +835,40 @@ print_v4l2_buffer(struct tcb *const tcp, const unsigned int code,
 	return RVAL_IOCTL_DECODED;
 }
 
+static int
+print_v4l2_exportbuffer(struct tcb *const tcp, const kernel_ulong_t arg)
+{
+	struct_v4l2_exportbuffer eb;
+
+	if (entering(tcp)) {
+		tprints(", ");
+		if (umove_or_printaddr(tcp, arg, &eb))
+			return RVAL_IOCTL_DECODED;
+
+		PRINT_FIELD_XVAL("{", eb, type, v4l2_buf_types,
+				 "V4L2_BUF_TYPE_???");
+		PRINT_FIELD_U(", ", eb, index);
+		PRINT_FIELD_U(", ", eb, plane);
+		tprints(", flags=");
+		tprint_open_modes(eb.flags);
+
+		return 0;
+	}
+
+	/* exiting */
+	if (!syserror(tcp) && !umove(tcp, arg, &eb)) {
+		PRINT_FIELD_FD(", ", eb, fd, tcp);
+
+		if (!IS_ARRAY_ZERO(eb.reserved))
+			PRINT_FIELD_ARRAY(", ", eb, reserved, tcp,
+					  print_xint32_array_member);
+	}
+
+	tprints("}");
+
+	return RVAL_IOCTL_DECODED;
+}
+
 #include "xlat/v4l2_framebuffer_capabilities.h"
 #include "xlat/v4l2_framebuffer_flags.h"
 
@@ -1551,6 +1598,9 @@ MPERS_PRINTER_DECL(int, v4l2_ioctl, struct tcb *const tcp,
 	case VIDIOC_QBUF: /* RW */
 	case VIDIOC_DQBUF: /* RW */
 		return print_v4l2_buffer(tcp, code, arg);
+
+	case VIDIOC_EXPBUF: /* RW */
+		return print_v4l2_exportbuffer(tcp, arg);
 
 	case VIDIOC_G_FBUF: /* R */
 		if (entering(tcp))
