@@ -138,6 +138,14 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	ioctl_nsfs \
 	ioctl_perf-success \
 	ioctl_rtc-v \
+	ioctl_rtc-success \
+	ioctl_rtc-success-Xabbrev \
+	ioctl_rtc-success-Xraw \
+	ioctl_rtc-success-Xverbose \
+	ioctl_rtc-success-v \
+	ioctl_rtc-success-v-Xabbrev \
+	ioctl_rtc-success-v-Xraw \
+	ioctl_rtc-success-v-Xverbose \
 	ioctl_v4l2-success \
 	ioctl_v4l2-success-Xabbrev \
 	ioctl_v4l2-success-Xraw \
@@ -302,6 +310,7 @@ DECODER_TESTS = \
 	ioctl_evdev-success.test \
 	ioctl_hdio-success.test \
 	ioctl_perf-success.test \
+	ioctl_rtc-success.test \
 	ioctl_v4l2-success.test \
 	ipc_msgbuf.test \
 	kern_features-fault.test \

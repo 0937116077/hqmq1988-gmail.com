@@ -205,6 +205,13 @@ ioctl_ptp	+ioctl.test
 ioctl_random	+ioctl.test
 ioctl_rtc	+ioctl.test
 ioctl_rtc-v	+ioctl.test -v
+ioctl_rtc-success-Xabbrev	+ioctl_rtc-success.test -a22 -Xabbrev
+ioctl_rtc-success-Xraw	+ioctl_rtc-success.test -a18 -Xraw
+ioctl_rtc-success-Xverbose	+ioctl_rtc-success.test -a35 -Xverbose
+ioctl_rtc-success-v	+ioctl_rtc-success.test -a22 -v
+ioctl_rtc-success-v-Xabbrev	+ioctl_rtc-success.test -a22 -v -Xabbrev
+ioctl_rtc-success-v-Xraw	+ioctl_rtc-success.test -a18 -v -Xraw
+ioctl_rtc-success-v-Xverbose	+ioctl_rtc-success.test -a35 -v -Xverbose
 ioctl_scsi	+ioctl.test
 ioctl_sg_io_v3	+ioctl.test
 ioctl_sg_io_v4	+ioctl.test
